@@ -97,6 +97,9 @@ public class ProfileUploadRetrieval implements AssignmentEndpoint {
     }
     try {
       var id = request.getParameter("id");
+      if (id != null && (id.contains("../") || id.contains("..\\"))) {
+          throw new IllegalArgumentException("Path traversal attempt detected");
+      }
       var catPicture =
           new File(catPicturesDirectory, (id == null ? RandomUtils.nextInt(1, 11) : id) + ".jpg");
 
@@ -118,6 +121,8 @@ public class ProfileUploadRetrieval implements AssignmentEndpoint {
                   .getBytes());
     } catch (IOException | URISyntaxException e) {
       log.error("Image not found", e);
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
     }
 
     return ResponseEntity.badRequest().build();
